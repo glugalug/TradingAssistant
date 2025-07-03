@@ -26,7 +26,6 @@
         }
         public RateLimitData? data { get; set; }
 
-        public class ErrorInfo { }
-        public ErrorInfo? Err {  get; set; }
+        public CoinDeskErr Err {  get; set; }
     }
 }

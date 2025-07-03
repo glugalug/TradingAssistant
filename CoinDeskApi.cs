@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using Newtonsoft.Json;
+using TradingAssistant.JsonResponses;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace TradingAssistant
@@ -86,6 +88,50 @@ namespace TradingAssistant
         {
             var response = requester.GetAndParseJsonSync<JsonResponses.CoinDeskRateLimit>(buildGetMessage("/admin/v2/rate/limit", apiKey: key));
             return (response != null && response?.data?.ApiKey?.REMAINING.minute > 0);
+        }
+
+        static public async Task<CoinDeskTopList.TData> getTopListPage(int page)
+        {
+            HttpRequestMessage request = buildGetMessage('/asset/v1/top/list', new Dictionary<string, string> {
+                { "page", page.ToString() },
+                {"page_size", "100" },
+                {"sort_by", "CREATED_ON" },
+                {"sort_direction", "ASC"},
+                {"groups", string.Join(',', new string[]{ 
+                    "ID", "BASIC", "SUPPORTED_PLATFORMS","CUSTODIANS", "CONTROLLED_ADDRESSES", "SECURITY_METRICS", "SUPPLY",
+                    "SUPPLY_ADDRESSES","ASSET_TYPE_SPECIFIC_METRICS","SOCIAL","TOKEN_SALE","EQUITY_SALE","RESOURCE_LINKS",
+                    "CLASSIFICATION","PRICE","MKT_CAP","VOLUME","CHANGE","TOPLIST_RANK","DESCRIPTION","DESCRIPTION_SUMMARY",
+                    "CONTACT","SEO","INTERNAL"
+                }) },
+                {"toplist_quote_asset", "USD" }
+            }, apiKey_);
+            var response = await requester.GetAndParseJsonAsync<CoinDeskTopList>(
+                request, jsonSettings: Globals.serializerSettings, preParser: ParseRateLimitFromHttpResponseHeaders);
+            if (response?.Err?.type != null)
+            {
+                throw new ApplicationException(string.Format("Failed to query coindesk toplist: '$0'", response.Err.ToString()));
+            }
+            return response?.Data;
+        }
+
+        static public async Task<CoinDeskTopList.Item[]> getTopList()
+        {
+            const int kItemsPerPage = 100;
+            int page = 1;
+            CoinDeskTopList.TData pageResult = await getTopListPage(page);
+            int itemCount = pageResult.STATS.TOTAL_ASSETS;
+            int pageCount = (itemCount + kItemsPerPage - 1) / kItemsPerPage;
+            int elementsAdded = 0;
+            var result = new CoinDeskTopList.Item[itemCount];
+            Array.Copy(pageResult.LIST, 0, result, 0, pageResult.LIST.Length);
+            elementsAdded += pageResult.LIST.Length;
+            while (elementsAdded < itemCount)
+            {
+                pageResult = await getTopListPage(++page);
+                Array.Copy(pageResult.LIST, 0, result, elementsAdded, pageResult.LIST.Length);
+                elementsAdded += pageResult.LIST.Length;
+            }
+            return result;
         }
 
         static private ThrottledHttpRequester requester_ = null;

@@ -106,17 +106,5 @@ namespace TradingAssistant.Properties {
                 this["coinDeskApiKey"] = value;
             }
         }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1")]
-        public double coinDeskQpsLimit {
-            get {
-                return ((double)(this["coinDeskQpsLimit"]));
-            }
-            set {
-                this["coinDeskQpsLimit"] = value;
-            }
-        }
     }
 }
