@@ -230,6 +230,7 @@ namespace TradingAssistant
             trackedCoinsDataGridView.Size = new Size(780, 115);
             trackedCoinsDataGridView.SortStringChangedInvokeBeforeDatasourceUpdate = true;
             trackedCoinsDataGridView.TabIndex = 1;
+            trackedCoinsDataGridView.ColumnAdded += DataGridViewColumnAdded;
             // 
             // settingsTabPage
             // 

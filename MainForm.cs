@@ -168,6 +168,7 @@ namespace TradingAssistant
             var dgv = sender as DataGridView;
             Type rowType = dgv.DataSource.GetType();
             DataGridViewColumn column = e.Column;
+            column.SortMode = DataGridViewColumnSortMode.Automatic;
             PropertyDescriptorCollection propDescriptors = TypeDescriptor.GetProperties(typeof(JsonResponses.CoinDeskTopList.Item));
             string propertyName = column.DataPropertyName;
             AttributeCollection? attributes = propDescriptors.Find(propertyName, ignoreCase: true)?.Attributes;

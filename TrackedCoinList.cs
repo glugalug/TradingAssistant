@@ -47,6 +47,7 @@ namespace TradingAssistant
                 trackedCoinProperties_.Remove(id);
                 OnCoinRemoved?.Invoke(id);
             }
+            saveToDefaultLocation();
         }
         public void addCoinId(int id)
         {
@@ -60,6 +61,7 @@ namespace TradingAssistant
                 trackedCoinNames_.Add(props);
             }
             OnCoinAdded?.Invoke(id);
+            saveToDefaultLocation();
         }
 
         public delegate void CoinEvent(int coinId);
@@ -157,7 +159,7 @@ namespace TradingAssistant
 
         private static string getDefaultLocation()
         {
-            return Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "trackedCoins.txt");
+            return Path.Join(Globals.getAppDataFolder(), "trackedCoins.txt");
         }
 
         public void saveToDefaultLocation()
