@@ -168,9 +168,9 @@ namespace TradingAssistant
             var dgv = sender as DataGridView;
             Type rowType = dgv.DataSource.GetType();
             DataGridViewColumn column = e.Column;
-            PropertyDescriptorCollection propDescriptors = TypeDescriptor.GetProperties(typeof(JsonResponses.CoinMetadata));
+            PropertyDescriptorCollection propDescriptors = TypeDescriptor.GetProperties(typeof(JsonResponses.CoinDeskTopList.Item));
             string propertyName = column.DataPropertyName;
-            AttributeCollection? attributes = propDescriptors.Find(propertyName, true)?.Attributes;
+            AttributeCollection? attributes = propDescriptors.Find(propertyName, ignoreCase: true)?.Attributes;
             if (attributes == null) return;
             var displayAttr = attributes.OfType<DisplayAttribute>().FirstOrDefault();
             column.Visible = displayAttr?.GetAutoGenerateField() ?? true;
