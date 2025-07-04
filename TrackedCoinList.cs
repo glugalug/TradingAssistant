@@ -75,17 +75,17 @@ namespace TradingAssistant
 
         public class CoinProperties
         {
-            public CoinProperties(int ID, CoinDeskTopList.Item? metadata)
+            public CoinProperties(int ID, CoinDeskTopList.Item? item)
             {
                 this.ID = ID;
                 this.item = item;
-                if (metadata == null)
+                if (item == null)
                 {
                     comboSelectionName = string.Format("Coin ID {0} with no info available", ID);
                 }
                 else
                 {
-                    comboSelectionName = string.Format("${0} ({1}) - {2}", item.SYMBOL, item.NAME);
+                    comboSelectionName = string.Format("${0} ({1}) - {2}", ID, item.SYMBOL, item.NAME);
                 }
             }
             public string toString() { return comboSelectionName; }
