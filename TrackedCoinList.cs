@@ -18,10 +18,10 @@ namespace TradingAssistant
     {
         public static TrackedCoinList instance = null;
 
-        public HashSet<string> getCoinsMissingStats()
+        public HashSet<int> getCoinsMissingStats()
         {
-            HashSet<string> missing = new HashSet<string>();
-            foreach (string id in trackedCoinProperties_.Keys)
+            var missing = new HashSet<int>();
+            foreach (var id in trackedCoinProperties_.Keys)
             {
                 if (refresher_.TryGetByKey(id) == null)
                 {
@@ -31,68 +31,68 @@ namespace TradingAssistant
             return missing;
         }
 
-        public void removeCoinIds(IEnumerable<string> ids)
+        public void removeCoinIds(IEnumerable<int> ids)
         {
             foreach (var id in ids) removeCoinId(id);
         }
-        public void removeCoinId(string id)
+        public void removeCoinId(int id)
         {
             if (trackedCoinProperties_.TryGetValue(id, out CoinProperties coinProperties))
             {
-                if (coinProperties.metadata != null)
+                if (coinProperties.item != null)
                 {
-                    trackedTickers_.Remove(coinProperties.metadata);
+                    trackedTickers_.Remove(coinProperties.item);
                 }
                 trackedCoinNames_.Remove(coinProperties);
                 trackedCoinProperties_.Remove(id);
                 OnCoinRemoved?.Invoke(id);
             }
         }
-        public void addCoinId(string id)
+        public void addCoinId(int id)
         {
             if (trackedCoinProperties_.ContainsKey(id)) return;
-            CoinMetadata? stats = refresher_.TryGetByKey(id);
-            var props = new CoinProperties(id, stats);
-            trackedCoinProperties_.Add(id, props);
-            if (stats != null)
+            CoinDeskTopList.Item? item = refresher_.TryGetByKey(id);
+            if (item != null)
             {
-                trackedTickers_.Add(stats);
+                var props = new CoinProperties(id, item);
+                trackedCoinProperties_.Add(id, props);
+                trackedTickers_.Add(item);
                 trackedCoinNames_.Add(props);
             }
             OnCoinAdded?.Invoke(id);
         }
 
-        public delegate void CoinEvent(string coinId);
+        public delegate void CoinEvent(int coinId);
         public event CoinEvent OnCoinAdded;
         public event CoinEvent OnCoinRemoved;
 
-        public bool includes(string id) { return trackedCoinProperties_.ContainsKey(id); }
+        public bool includes(int id) { return trackedCoinProperties_.ContainsKey(id); }
 
-        public SortableBindingList<CoinMetadata> coinMetadataBinding { get { return trackedTickers_; } }
+        public SortableBindingList<CoinDeskTopList.Item> coinMetadataBinding { get { return trackedTickers_; } }
         public SortableBindingList<CoinProperties> coinNamesBinding { get { return trackedCoinNames_; } }
-        private SortableBindingList<CoinMetadata> trackedTickers_ = new SortableBindingList<CoinMetadata>(new List<CoinMetadata>());
+        private SortableBindingList<CoinDeskTopList.Item> trackedTickers_ = new SortableBindingList<CoinDeskTopList.Item>(new List<CoinDeskTopList.Item>());
         private SortableBindingList<CoinProperties> trackedCoinNames_ = new SortableBindingList<CoinProperties>(new List<CoinProperties>());
 
         public class CoinProperties
         {
-            public CoinProperties(string ticker, CoinMetadata? metadata)
+            public CoinProperties(int ID, CoinDeskTopList.Item? metadata)
             {
-                this.ticker = ticker;
-                this.metadata = metadata;
+                this.ID = ID;
+                this.item = item;
                 if (metadata == null)
                 {
-                    comboSelectionName = string.Format("{0} with no info available", ticker);
+                    comboSelectionName = string.Format("Coin ID {0} with no info available", ID);
                 }
                 else
                 {
-                    comboSelectionName = string.Format("${0} ({1}) - {2}", metadata.base_currency_symbol, ticker, metadata.name);
+                    comboSelectionName = string.Format("${0} ({1}) - {2}", item.SYMBOL, item.NAME);
                 }
             }
             public string toString() { return comboSelectionName; }
-            public CoinMetadata? metadata;
+            public CoinDeskTopList.Item? item;
             public string comboSelectionName;
             public string name { get { return comboSelectionName; } }
-            public string ticker;
+            public int ID;
         }
 
         private void rebuildBindingLists()
@@ -104,18 +104,18 @@ namespace TradingAssistant
                 foreach (var entry in trackedCoinProperties_)
                 {
                     var key = entry.Key;
-                    CoinMetadata? metadata = refresher_.TryGetByKey(key);
+                    CoinDeskTopList.Item? item = refresher_.TryGetByKey(key);
                     CoinProperties props = entry.Value;
-                    CoinMetadata? oldMetadata = props.metadata;
-                    if (metadata == oldMetadata) continue;
-                    if (metadata != null)
+                    CoinDeskTopList.Item? oldItem = props.item;
+                    if (item == oldItem) continue;
+                    if (item != null)
                     {
-                        props.metadata = metadata;
-                        if (oldMetadata != null)
+                        props.item = item;
+                        if (oldItem != null)
                         {
-                            trackedTickers_.Remove(oldMetadata);
+                            trackedTickers_.Remove(oldItem);
                         }
-                        trackedTickers_.Add(metadata);
+                        trackedTickers_.Add(item);
                     }
                 }
                 trackedCoinNames_.ResetBindings();
@@ -127,29 +127,26 @@ namespace TradingAssistant
             }
         }
 
-        public static TrackedCoinList loadFromDefaultLocation(DataFetchers.CoinMetadataRefresher refresher)
+        public static TrackedCoinList loadFromDefaultLocation(DataFetchers.CoinDeskTopListRefresher refresher)
         {
             string path = getDefaultLocation();
-            if (!File.Exists(path)) return new TrackedCoinList(new List<string>(), refresher);
+            if (!File.Exists(path)) return new TrackedCoinList(new List<int>(), refresher);
             return loadFrom(path, refresher);
         }
 
-        public static TrackedCoinList loadFrom(string path, DataFetchers.CoinMetadataRefresher refresher)
+        public static TrackedCoinList loadFrom(string path, DataFetchers.CoinDeskTopListRefresher refresher)
         {
             Console.WriteLine("loading tracked coin list from " + path);
-            return new TrackedCoinList(File.ReadAllLines(path), refresher);
+            return new TrackedCoinList(File.ReadAllLines(path).ToList().ConvertAll(s => int.Parse(s)), refresher);
         }
 
-        private TrackedCoinList(IEnumerable<string> coins, DataFetchers.CoinMetadataRefresher refresher)
+        private TrackedCoinList(IEnumerable<int> coins, DataFetchers.CoinDeskTopListRefresher refresher)
         {
             refresher_ = refresher;
             refresher.bindingList.ListChanged += Refresher_ListChanged;
-            foreach (string coin in coins)
+            foreach (int coin in coins)
             {
-                if (coin.Length > 0)
-                {
-                    addCoinId(coin);
-                }
+                addCoinId(coin);
             }
         }
 
@@ -171,11 +168,11 @@ namespace TradingAssistant
         public void saveTo(string path)
         {
             Console.WriteLine("Saving tracked coin stats to: " + path);
-            File.WriteAllLines(path, trackedCoinProperties_.Keys);
+            File.WriteAllLines(path, trackedCoinProperties_.Keys.ToList().ConvertAll(i => i.ToString()));
         }
 
-        private Dictionary<string, CoinProperties> trackedCoinProperties_ = new();
-        private DataFetchers.CoinMetadataRefresher refresher_;
+        private Dictionary<int, CoinProperties> trackedCoinProperties_ = new();
+        private DataFetchers.CoinDeskTopListRefresher refresher_;
 
         // TODO: Add rebuild properties & bindings functionality for stats reload.
     }

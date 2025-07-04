@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography.Pkcs;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
@@ -148,21 +149,22 @@ namespace TradingAssistant
         {
             if (!disposedValue)
             {
+                lock (shutdownLock_)
+                {
+                    shuttingDown_ = true;
+                    notifyShuttingDown();
+                    while (refreshInProgress_)
+                    {
+                        Monitor.Wait(shutdownLock_);
+                    }
+                }
+                refreshTimer_?.Dispose();
+                // TODO: dispose managed state (managed objects)
+                bool temp;
+                refreshers_.TryRemove(this, out temp);
+
                 if (disposing)
                 {
-                    lock (shutdownLock_)
-                    {
-                        shuttingDown_ = true;
-                        notifyShuttingDown();
-                        while (refreshInProgress_)
-                        {
-                            Monitor.Wait(shutdownLock_);
-                        }
-                    }
-                    refreshTimer_?.Dispose();
-                    // TODO: dispose managed state (managed objects)
-                    bool temp;
-                    refreshers_.TryRemove(this, out temp);
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer
@@ -195,6 +197,7 @@ namespace TradingAssistant
     internal abstract class RefreshableDataRecords<T, K> : RefreshableDataRecordsInterface
          where T : notnull where K : notnull
     {
+        public Type KeyType = typeof(K);
         public RefreshableDataRecords(RefreshOptions options)
         {
             options_ = options;

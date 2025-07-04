@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -92,12 +93,14 @@ namespace TradingAssistant
 
         static public async Task<CoinDeskTopList.TData> getTopListPage(int page)
         {
-            HttpRequestMessage request = buildGetMessage('/asset/v1/top/list', new Dictionary<string, string> {
+            try
+            {
+                HttpRequestMessage request = buildGetMessage("/asset/v1/top/list", new Dictionary<string, string> {
                 { "page", page.ToString() },
                 {"page_size", "100" },
                 {"sort_by", "CREATED_ON" },
                 {"sort_direction", "ASC"},
-                {"groups", string.Join(',', new string[]{ 
+                {"groups", string.Join(',', new string[]{
                     "ID", "BASIC", "SUPPORTED_PLATFORMS","CUSTODIANS", "CONTROLLED_ADDRESSES", "SECURITY_METRICS", "SUPPLY",
                     "SUPPLY_ADDRESSES","ASSET_TYPE_SPECIFIC_METRICS","SOCIAL","TOKEN_SALE","EQUITY_SALE","RESOURCE_LINKS",
                     "CLASSIFICATION","PRICE","MKT_CAP","VOLUME","CHANGE","TOPLIST_RANK","DESCRIPTION","DESCRIPTION_SUMMARY",
@@ -105,13 +108,22 @@ namespace TradingAssistant
                 }) },
                 {"toplist_quote_asset", "USD" }
             }, apiKey_);
-            var response = await requester.GetAndParseJsonAsync<CoinDeskTopList>(
-                request, jsonSettings: Globals.serializerSettings, preParser: ParseRateLimitFromHttpResponseHeaders);
-            if (response?.Err?.type != null)
-            {
-                throw new ApplicationException(string.Format("Failed to query coindesk toplist: '$0'", response.Err.ToString()));
+                var response = await requester.GetAndParseJsonAsync<CoinDeskTopList>(
+                    request, jsonSettings: Globals.serializerSettings, preParser: ParseRateLimitFromHttpResponseHeaders);
+                if (response == null)
+                {
+                    throw new Exception("Failed to parse json response!");
+                }
+                if (response?.Err?.type != null)
+                {
+                    throw new ApplicationException(string.Format("Failed to query coindesk toplist: '$0'", response.Err.ToString()));
+                }
+                return response?.Data;
             }
-            return response?.Data;
+            catch (Exception e)
+            {
+                throw e;
+            }
         }
 
         static public async Task<CoinDeskTopList.Item[]> getTopList()
@@ -130,6 +142,7 @@ namespace TradingAssistant
                 pageResult = await getTopListPage(++page);
                 Array.Copy(pageResult.LIST, 0, result, elementsAdded, pageResult.LIST.Length);
                 elementsAdded += pageResult.LIST.Length;
+                Console.WriteLine("page: {0} elementsAdded: {1} itemCount: {2}", page, elementsAdded, itemCount);
             }
             return result;
         }

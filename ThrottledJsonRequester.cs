@@ -27,19 +27,26 @@ namespace TradingAssistant
         {
             try
             {
-                start_mutex_.WaitOne();
-                DateTime minStart = lastRequestStart_.Add(minRequestInterval);
-                TimeSpan remaining = minStart.Subtract(DateTime.Now);
-                if (remaining > TimeSpan.Zero)
+                using (var startMutexLock = new ReleaseableMutexLock(start_mutex_))
                 {
-                    Console.WriteLine("Throttling, before request '{0}', {1} remains", message, remaining);
-                    await Task.Delay(remaining);
+                    DateTime minStart = lastRequestStart_.Add(minRequestInterval);
+                    TimeSpan remaining = minStart.Subtract(DateTime.Now);
+                    if (remaining > TimeSpan.Zero)
+                    {
+                        lastRequestStart_ = minStart;
+                        startMutexLock.Release();
+                        Console.WriteLine("Throttling, before request '{0}', {1} remains", message, remaining);
+                        await Task.Delay(remaining);
+                    }
                 }
-                lastRequestStart_ = DateTime.Now;
+                using (var startMutexLock = new ReleaseableMutexLock(start_mutex_))
+                {
+                    lastRequestStart_ = DateTime.Now;
+                }
             }
             finally
             {
-                start_mutex_.ReleaseMutex();
+                //start_mutex_.ReleaseMutex();
             }
             Console.WriteLine(string.Format("Starting request: '{0}'", message));
             using HttpResponseMessage httpResponse = await client.SendAsync(message);
@@ -155,9 +162,10 @@ namespace TradingAssistant
         {
             if (!disposedValue)
             {
+                client.Dispose();
+
                 if (disposing)
                 {
-                    client.Dispose();
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer

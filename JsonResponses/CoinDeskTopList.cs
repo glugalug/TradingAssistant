@@ -238,7 +238,7 @@ namespace TradingAssistant.JsonResponses
                 public string? ID { get; set; }
             }
             [Display(AutoGenerateField = false)]
-            public AssetAlternativeId? ASSET_ALTERNATIVE_IDS { get; set; }
+            public AssetAlternativeId[]? ASSET_ALTERNATIVE_IDS { get; set; }
             [Display(AutoGenerateField = false, Description = "The long form description in markdown for this asset.")]
             public string? ASSET_DESCRIPTION { get; set; }
             [Display(AutoGenerateField = false, Description = "The short form description text only for this asset.")]
@@ -273,7 +273,7 @@ namespace TradingAssistant.JsonResponses
             [Display(AutoGenerateField = false, Description = "The unix timestamp of the most recently issued block.")]
             public long? LAST_BLOCK_TIMESTAMP { get; set; }
             [Display(AutoGenerateField = false, Description = "Time spent in seconds to produce the most recently issued block.")]
-            public int? LAST_BLOCK_TIME { get; set; }
+            public double? LAST_BLOCK_TIME { get; set; }
             [Display(AutoGenerateField = false, Description = "The size in bytes of the most recently issued block.")]
             public long? LAST_BLOCK_SIZE { get; set; }
             [Display(AutoGenerateField = false)]

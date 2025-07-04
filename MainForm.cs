@@ -17,25 +17,46 @@ namespace TradingAssistant
 
         private void startTickerListRefresher()
         {
-            tickerListRefresher_ = new CoinMetadataRefresher(new RefreshOptions
+            //polygonTickerListRefresher_ = new CoinMetadataRefresher(new RefreshOptions
+            //{
+            //    refreshEnabled = true,
+            //    refreshInterval = TimeSpan.FromDays(settings_.polygonTickerRefreshDays),
+            //    constructorWaitsForFirstLoad = true,
+            //    removeMissingElementsAfterReload = true,
+            //});
+            //polygonTickerListRefresher_.OnDataReloaded += TickerListRefresher__OnDataReloaded;
+
+            coinDeskTopListRefresher_ = new CoinDeskTopListRefresher(new RefreshOptions
             {
                 refreshEnabled = true,
-                refreshInterval = TimeSpan.FromDays(settings_.polygonTickerRefreshDays),
+                refreshInterval = TimeSpan.FromDays(1),
                 constructorWaitsForFirstLoad = true,
                 removeMissingElementsAfterReload = true,
             });
-            tickerListRefresher_.OnDataReloaded += TickerListRefresher__OnDataReloaded;
+            coinDeskTopListRefresher_.OnDataReloaded += CoinDeskTopListRefresher__OnDataReloaded;
+
             allCoinsDataGridView.AutoGenerateColumns = true;
-            allCoinsDataGridView.DataSource = tickerListRefresher_.bindingList;
+            allCoinsDataGridView.DataSource = coinDeskTopListRefresher_.bindingList;
+                // polygonTickerListRefresher_.bindingList;
             allCoinsDataGridView.Refresh();
-            TrackedCoinList.instance = TrackedCoinList.loadFromDefaultLocation(tickerListRefresher_);
-            trackedCoinsDataGridView.DataSource = TrackedCoinList.instance.coinMetadataBinding;
+            trackedCoinList = TrackedCoinList.loadFromDefaultLocation(coinDeskTopListRefresher_);
+            trackedCoinsDataGridView.DataSource = trackedCoinList.coinMetadataBinding;
         }
 
-        private void TickerListRefresher__OnDataReloaded(RefreshableDataRecordsInterface sender, RefreshableDataRecords<CoinMetadata, string>.DataReloadedEventArgs args)
-        {
-            tickerListRefresher_.ResetBindingsOnControlThread(allCoinsDataGridView);
+        private TrackedCoinList trackedCoinList {
+            get { return TrackedCoinList.instance; } 
+            set {  TrackedCoinList.instance = value; }
         }
+
+        private void CoinDeskTopListRefresher__OnDataReloaded(RefreshableDataRecordsInterface sender, RefreshableDataRecords<CoinDeskTopList.Item, int>.DataReloadedEventArgs args)
+        {
+            coinDeskTopListRefresher_.ResetBindingsOnControlThread(allCoinsDataGridView);
+        }
+
+        //private void TickerListRefresher__OnDataReloaded(RefreshableDataRecordsInterface sender, RefreshableDataRecords<CoinMetadata, string>.DataReloadedEventArgs args)
+        //{
+        //    polygonTickerListRefresher_.ResetBindingsOnControlThread(allCoinsDataGridView);
+        //}
 
         private void initSettingsInputs()
         {
@@ -149,7 +170,8 @@ namespace TradingAssistant
             DataGridViewColumn column = e.Column;
             PropertyDescriptorCollection propDescriptors = TypeDescriptor.GetProperties(typeof(JsonResponses.CoinMetadata));
             string propertyName = column.DataPropertyName;
-            AttributeCollection attributes = propDescriptors.Find(propertyName, false).Attributes;
+            AttributeCollection? attributes = propDescriptors.Find(propertyName, true)?.Attributes;
+            if (attributes == null) return;
             var displayAttr = attributes.OfType<DisplayAttribute>().FirstOrDefault();
             column.Visible = displayAttr?.GetAutoGenerateField() ?? true;
             column.Name = displayAttr?.Name ?? propertyName;
@@ -171,7 +193,8 @@ namespace TradingAssistant
         }
 
         bool settingInputsInited_ = false;
-        private CoinMetadataRefresher tickerListRefresher_;
+        private CoinMetadataRefresher polygonTickerListRefresher_;
+        private CoinDeskTopListRefresher coinDeskTopListRefresher_;
 
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
@@ -186,7 +209,7 @@ namespace TradingAssistant
 
         private void refreshTickerListButton_Click(object sender, EventArgs e)
         {
-            Task.Run(async () => tickerListRefresher_.startRefresh());
+            Task.Run(async () => polygonTickerListRefresher_.startRefresh());
             allCoinsDataGridView.Refresh();
         }
 
@@ -200,7 +223,7 @@ namespace TradingAssistant
             DataGridViewSelectedRowCollection rows = allCoinsDataGridView.SelectedRows;
             foreach (DataGridViewRow row in rows)
             {
-                TrackedCoinList.instance.addCoinId(((CoinMetadata)row.DataBoundItem).ticker);
+                trackedCoinList.addCoinId(((CoinDeskTopList.Item)row.DataBoundItem).ID);
             }
         }
 
@@ -208,7 +231,7 @@ namespace TradingAssistant
         {
             foreach (DataGridViewRow row in trackedCoinsDataGridView.SelectedRows)
             {
-                TrackedCoinList.instance.removeCoinId(((CoinMetadata)row.DataBoundItem).ticker);
+                trackedCoinList.removeCoinId(((CoinDeskTopList.Item)row.DataBoundItem).ID);
             }
         }
 
