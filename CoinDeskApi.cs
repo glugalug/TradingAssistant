@@ -21,7 +21,7 @@ namespace TradingAssistant
                     requester_ = new ThrottledHttpRequester(new ThrottledHttpRequester.Options
                     {
                         // For coinDesk, we will auto-adjust throttling based on rate limit headers, but start at 1 QPS.
-                        minRequestInterval = TimeSpan.FromSeconds(1),
+                        minRequestInterval = TimeSpan.FromSeconds(0.01),
                     });
                 }
                 return requester_;
@@ -78,11 +78,15 @@ namespace TradingAssistant
             }
         }
 
-        static private async Task<T?> GetAndParseJsonAsync<T>(
+        static private async Task<T> GetAndParseJsonAsync<T>(
                     HttpRequestMessage message,
                     JsonSerializerSettings? jsonSettings = null)
         {
-            return await requester.GetAndParseJsonAsync<T>(message, jsonSettings, ParseRateLimitFromHttpResponseHeaders);
+            if (jsonSettings == null) jsonSettings = Globals.serializerSettings;
+            return await requester.GetAndParseJsonAsync<T>(
+                message,
+                jsonSettings: jsonSettings,
+                preParser: ParseRateLimitFromHttpResponseHeaders);
         }
 
         internal static bool testApiKey(string key)
@@ -108,8 +112,7 @@ namespace TradingAssistant
                 }) },
                 {"toplist_quote_asset", "USD" }
             }, apiKey_);
-                var response = await requester.GetAndParseJsonAsync<CoinDeskTopList>(
-                    request, jsonSettings: Globals.serializerSettings, preParser: ParseRateLimitFromHttpResponseHeaders);
+                var response = await GetAndParseJsonAsync<CoinDeskTopList>(request);
                 if (response == null)
                 {
                     throw new Exception("Failed to parse json response!");
@@ -145,6 +148,25 @@ namespace TradingAssistant
                 Console.WriteLine("page: {0} elementsAdded: {1} itemCount: {2}", page, elementsAdded, itemCount);
             }
             return result;
+        }
+
+        static public async Task<HashSet<string>> getActiveMarkets()
+        {
+            HttpRequestMessage request = buildGetMessage("/spot/v1/markets", 
+                // We fetch only the ID group for now.  If the groups list is empty, ALL field groups are returned.
+                new Dictionary<string, string> { { "groups", "ID" } },
+                apiKey_);
+            var response = await requester.GetAndParseJsonAsync<CoinDeskMarkets>(request);
+            if (response.Err?.type != null)
+            {
+                throw new Exception(string.Format("Failed to get market list: '{0}'", response.Err));
+            }
+            HashSet<string> activeMarkets = new();
+            foreach(CoinDeskMarkets.MarketData md in response.Data.Values)
+            {
+                if (md.EXCHANGE_STATUS == "ACTIVE") activeMarkets.Add(md.EXCHANGE_INTERNAL_NAME);
+            }
+            return activeMarkets;
         }
 
         static private ThrottledHttpRequester requester_ = null;

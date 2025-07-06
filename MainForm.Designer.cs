@@ -52,6 +52,13 @@ namespace TradingAssistant
             coinDeskApiKeyTableLayoutPanel = new TableLayoutPanel();
             label5 = new Label();
             coinDeskApiKeyTextBox = new TextBox();
+            coinDeskMarketPriorityGroupBox = new GroupBox();
+            coinDeskMarketsSplitContainer = new SplitContainer();
+            coinDeskMarketsListBox = new ListBox();
+            marketPriorityButtonsTableLayoutPanel = new TableLayoutPanel();
+            enableMarketsButton = new Button();
+            disableSelectedMarketsButton = new Button();
+            refreshMarketListButton = new Button();
             polygonSettingsTabPage = new TabPage();
             polygonSettingsTableLayoutPanel = new TableLayoutPanel();
             polygonApiKeyTableLayoutPanel = new TableLayoutPanel();
@@ -89,6 +96,12 @@ namespace TradingAssistant
             coinDeskSettingsTabPage.SuspendLayout();
             coinDeskSettingsTableLayoutPanel.SuspendLayout();
             coinDeskApiKeyTableLayoutPanel.SuspendLayout();
+            coinDeskMarketPriorityGroupBox.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)coinDeskMarketsSplitContainer).BeginInit();
+            coinDeskMarketsSplitContainer.Panel1.SuspendLayout();
+            coinDeskMarketsSplitContainer.Panel2.SuspendLayout();
+            coinDeskMarketsSplitContainer.SuspendLayout();
+            marketPriorityButtonsTableLayoutPanel.SuspendLayout();
             polygonSettingsTabPage.SuspendLayout();
             polygonSettingsTableLayoutPanel.SuspendLayout();
             polygonApiKeyTableLayoutPanel.SuspendLayout();
@@ -292,12 +305,14 @@ namespace TradingAssistant
             coinDeskSettingsTableLayoutPanel.ColumnCount = 1;
             coinDeskSettingsTableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
             coinDeskSettingsTableLayoutPanel.Controls.Add(coinDeskApiKeyTableLayoutPanel, 0, 0);
+            coinDeskSettingsTableLayoutPanel.Controls.Add(coinDeskMarketPriorityGroupBox, 0, 1);
             coinDeskSettingsTableLayoutPanel.Dock = DockStyle.Fill;
             coinDeskSettingsTableLayoutPanel.Location = new Point(0, 0);
             coinDeskSettingsTableLayoutPanel.Name = "coinDeskSettingsTableLayoutPanel";
-            coinDeskSettingsTableLayoutPanel.RowCount = 2;
+            coinDeskSettingsTableLayoutPanel.RowCount = 3;
             coinDeskSettingsTableLayoutPanel.RowStyles.Add(new RowStyle());
             coinDeskSettingsTableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            coinDeskSettingsTableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
             coinDeskSettingsTableLayoutPanel.Size = new Size(764, 354);
             coinDeskSettingsTableLayoutPanel.TabIndex = 0;
             // 
@@ -336,6 +351,94 @@ namespace TradingAssistant
             coinDeskApiKeyTextBox.TabIndex = 1;
             coinDeskApiKeyTextBox.TextChanged += coinDeskApiKeyTextBox_TextChanged;
             coinDeskApiKeyTextBox.Leave += coinDeskApiKeyTextBox_Leave;
+            // 
+            // coinDeskMarketPriorityGroupBox
+            // 
+            coinDeskMarketPriorityGroupBox.Controls.Add(coinDeskMarketsSplitContainer);
+            coinDeskMarketPriorityGroupBox.Dock = DockStyle.Fill;
+            coinDeskMarketPriorityGroupBox.Location = new Point(3, 41);
+            coinDeskMarketPriorityGroupBox.Name = "coinDeskMarketPriorityGroupBox";
+            coinDeskMarketPriorityGroupBox.Size = new Size(758, 290);
+            coinDeskMarketPriorityGroupBox.TabIndex = 1;
+            coinDeskMarketPriorityGroupBox.TabStop = false;
+            coinDeskMarketPriorityGroupBox.Text = "Market Priority";
+            coinDeskMarketPriorityGroupBox.Enter += coinDeskMarketPriorityGroupBox_Enter;
+            // 
+            // coinDeskMarketsSplitContainer
+            // 
+            coinDeskMarketsSplitContainer.Dock = DockStyle.Fill;
+            coinDeskMarketsSplitContainer.Location = new Point(3, 19);
+            coinDeskMarketsSplitContainer.Name = "coinDeskMarketsSplitContainer";
+            // 
+            // coinDeskMarketsSplitContainer.Panel1
+            // 
+            coinDeskMarketsSplitContainer.Panel1.Controls.Add(coinDeskMarketsListBox);
+            // 
+            // coinDeskMarketsSplitContainer.Panel2
+            // 
+            coinDeskMarketsSplitContainer.Panel2.Controls.Add(marketPriorityButtonsTableLayoutPanel);
+            coinDeskMarketsSplitContainer.Size = new Size(752, 268);
+            coinDeskMarketsSplitContainer.SplitterDistance = 250;
+            coinDeskMarketsSplitContainer.TabIndex = 1;
+            // 
+            // coinDeskMarketsListBox
+            // 
+            coinDeskMarketsListBox.Dock = DockStyle.Fill;
+            coinDeskMarketsListBox.FormattingEnabled = true;
+            coinDeskMarketsListBox.Location = new Point(0, 0);
+            coinDeskMarketsListBox.Name = "coinDeskMarketsListBox";
+            coinDeskMarketsListBox.SelectionMode = SelectionMode.MultiExtended;
+            coinDeskMarketsListBox.Size = new Size(250, 268);
+            coinDeskMarketsListBox.TabIndex = 0;
+            coinDeskMarketsListBox.DragDrop += coinDeskMarketsListBox_DragDrop;
+            coinDeskMarketsListBox.DragOver += coinDeskMarketsListBox_DragOver;
+            // 
+            // marketPriorityButtonsTableLayoutPanel
+            // 
+            marketPriorityButtonsTableLayoutPanel.ColumnCount = 1;
+            marketPriorityButtonsTableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            marketPriorityButtonsTableLayoutPanel.Controls.Add(enableMarketsButton, 0, 0);
+            marketPriorityButtonsTableLayoutPanel.Controls.Add(disableSelectedMarketsButton, 0, 1);
+            marketPriorityButtonsTableLayoutPanel.Controls.Add(refreshMarketListButton, 0, 2);
+            marketPriorityButtonsTableLayoutPanel.Dock = DockStyle.Fill;
+            marketPriorityButtonsTableLayoutPanel.Location = new Point(0, 0);
+            marketPriorityButtonsTableLayoutPanel.Name = "marketPriorityButtonsTableLayoutPanel";
+            marketPriorityButtonsTableLayoutPanel.RowCount = 3;
+            marketPriorityButtonsTableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 33.3333321F));
+            marketPriorityButtonsTableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 33.3333321F));
+            marketPriorityButtonsTableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 33.3333321F));
+            marketPriorityButtonsTableLayoutPanel.Size = new Size(498, 268);
+            marketPriorityButtonsTableLayoutPanel.TabIndex = 0;
+            // 
+            // enableMarketsButton
+            // 
+            enableMarketsButton.Anchor = AnchorStyles.None;
+            enableMarketsButton.Location = new Point(185, 17);
+            enableMarketsButton.Name = "enableMarketsButton";
+            enableMarketsButton.Size = new Size(128, 54);
+            enableMarketsButton.TabIndex = 0;
+            enableMarketsButton.Text = "Enable Selected Markets";
+            enableMarketsButton.UseVisualStyleBackColor = true;
+            // 
+            // disableSelectedMarketsButton
+            // 
+            disableSelectedMarketsButton.Anchor = AnchorStyles.None;
+            disableSelectedMarketsButton.Location = new Point(186, 111);
+            disableSelectedMarketsButton.Name = "disableSelectedMarketsButton";
+            disableSelectedMarketsButton.Size = new Size(126, 45);
+            disableSelectedMarketsButton.TabIndex = 1;
+            disableSelectedMarketsButton.Text = "Disable Selected Markets";
+            disableSelectedMarketsButton.UseVisualStyleBackColor = true;
+            // 
+            // refreshMarketListButton
+            // 
+            refreshMarketListButton.Anchor = AnchorStyles.None;
+            refreshMarketListButton.Location = new Point(177, 202);
+            refreshMarketListButton.Name = "refreshMarketListButton";
+            refreshMarketListButton.Size = new Size(143, 41);
+            refreshMarketListButton.TabIndex = 2;
+            refreshMarketListButton.Text = "Refresh Market List";
+            refreshMarketListButton.UseVisualStyleBackColor = true;
             // 
             // polygonSettingsTabPage
             // 
@@ -606,6 +709,12 @@ namespace TradingAssistant
             coinDeskSettingsTableLayoutPanel.ResumeLayout(false);
             coinDeskApiKeyTableLayoutPanel.ResumeLayout(false);
             coinDeskApiKeyTableLayoutPanel.PerformLayout();
+            coinDeskMarketPriorityGroupBox.ResumeLayout(false);
+            coinDeskMarketsSplitContainer.Panel1.ResumeLayout(false);
+            coinDeskMarketsSplitContainer.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)coinDeskMarketsSplitContainer).EndInit();
+            coinDeskMarketsSplitContainer.ResumeLayout(false);
+            marketPriorityButtonsTableLayoutPanel.ResumeLayout(false);
             polygonSettingsTabPage.ResumeLayout(false);
             polygonSettingsTableLayoutPanel.ResumeLayout(false);
             polygonSettingsTableLayoutPanel.PerformLayout();
@@ -664,5 +773,12 @@ namespace TradingAssistant
         private TableLayoutPanel coinDeskApiKeyTableLayoutPanel;
         private Label label5;
         private TextBox coinDeskApiKeyTextBox;
+        private GroupBox coinDeskMarketPriorityGroupBox;
+        private SplitContainer coinDeskMarketsSplitContainer;
+        private ListBox coinDeskMarketsListBox;
+        private TableLayoutPanel marketPriorityButtonsTableLayoutPanel;
+        private Button enableMarketsButton;
+        private Button disableSelectedMarketsButton;
+        private Button refreshMarketListButton;
     }
 }

@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
+using System.Windows.Forms;
 using TradingAssistant.DataFetchers;
 using TradingAssistant.JsonResponses;
 
@@ -37,15 +38,16 @@ namespace TradingAssistant
 
             allCoinsDataGridView.AutoGenerateColumns = true;
             allCoinsDataGridView.DataSource = coinDeskTopListRefresher_.bindingList;
-                // polygonTickerListRefresher_.bindingList;
+            // polygonTickerListRefresher_.bindingList;
             allCoinsDataGridView.Refresh();
             trackedCoinList = TrackedCoinList.loadFromDefaultLocation(coinDeskTopListRefresher_);
             trackedCoinsDataGridView.DataSource = trackedCoinList.coinMetadataBinding;
         }
 
-        private TrackedCoinList trackedCoinList {
-            get { return TrackedCoinList.instance; } 
-            set {  TrackedCoinList.instance = value; }
+        private TrackedCoinList trackedCoinList
+        {
+            get { return TrackedCoinList.instance; }
+            set { TrackedCoinList.instance = value; }
         }
 
         private void CoinDeskTopListRefresher__OnDataReloaded(RefreshableDataRecordsInterface sender, RefreshableDataRecords<CoinDeskTopList.Item, int>.DataReloadedEventArgs args)
@@ -275,6 +277,26 @@ namespace TradingAssistant
         private void coinDeskApiKeyTextBox_TextChanged(object sender, EventArgs e)
         {
             coinDeskApiKeyDirty_ = coinDeskApiKeyTextBox.Text != settings_.coinDeskApiKey;
+        }
+
+        private void coinDeskMarketPriorityGroupBox_Enter(object sender, EventArgs e)
+        {
+
+        }
+
+        private void coinDeskMarketsListBox_DragOver(object sender, DragEventArgs e)
+        {
+            e.Effect = DragDropEffects.Move;
+        }
+
+        private void coinDeskMarketsListBox_DragDrop(object sender, DragEventArgs e)
+        {
+            Point point = coinDeskMarketsListBox.PointToClient(new Point(e.X, e.Y));
+            int index = this.coinDeskMarketsListBox.IndexFromPoint(point);
+            if (index < 0) index = this.coinDeskMarketsListBox.Items.Count - 1;
+            object data = e.Data.GetData(typeof(string));
+            this.coinDeskMarketsListBox.Items.Remove(data);
+            this.coinDeskMarketsListBox.Items.Insert(index, data);
         }
     }
 }

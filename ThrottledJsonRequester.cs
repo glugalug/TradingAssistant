@@ -100,13 +100,18 @@ namespace TradingAssistant
             return resultHodler.result;
         }
 
-        public async Task<T?> GetAndParseJsonAsync<T>(
+        public async Task<T> GetAndParseJsonAsync<T>(
             HttpRequestMessage message,
             JsonSerializerSettings? jsonSettings=null,
             ProcessHttpResponseDelegate? preParser = null)
         {
             string jsonText = await GetAsync(message, preParser);
-            return JsonConvert.DeserializeObject<T>(jsonText, jsonSettings ?? defaultSerializerSettings);
+            var response = JsonConvert.DeserializeObject<T>(jsonText, jsonSettings ?? defaultSerializerSettings);
+            if (response == null)
+            {
+                throw new Exception(string.Format("Failed to parse json response: '{0}'", jsonText));
+            }
+            return response;
         }
 
         private async Task internalGetJsonAsyncForSyncWrapping<T>(
@@ -129,7 +134,7 @@ namespace TradingAssistant
             }
         }
 
-        public T? GetAndParseJsonSync<T>(HttpRequestMessage message, 
+        public T GetAndParseJsonSync<T>(HttpRequestMessage message, 
                                          JsonSerializerSettings? jsonSettings = null, 
                                          ProcessHttpResponseDelegate? preParser = null)
         {

@@ -167,6 +167,7 @@ namespace TradingAssistant
             saveTo(getDefaultLocation());
         }
 
+        // TODO: This should probably do some JSON format with ID + SYMBOL to make the file more manually inspectable/debuggable. 
         public void saveTo(string path)
         {
             Console.WriteLine("Saving tracked coin stats to: " + path);
