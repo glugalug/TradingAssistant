@@ -68,36 +68,9 @@ namespace TradingAssistant
             return responseText;
         }
 
-        private class AsyncResultHodler<T>
-        {
-            public T? result;
-            public Exception? e;
-            public ManualResetEvent completion_event = new ManualResetEvent(false);
-        }
-
-        private async Task internalGetAsyncForSyncWrapping(HttpRequestMessage message, AsyncResultHodler<string> resultHodler)
-        {
-            try
-            {
-                resultHodler.result = await GetAsync(message);
-            }
-            catch (Exception ex)
-            {
-                resultHodler.e = ex;
-            }
-            finally
-            {
-                resultHodler.completion_event.Set();
-            }
-        }
-
         public string GetSync(HttpRequestMessage message)
         {
-            AsyncResultHodler<string> resultHodler = new();
-            Task.Run(async () => internalGetAsyncForSyncWrapping(message, resultHodler));
-            resultHodler.completion_event.WaitOne();
-            if (resultHodler.e != null) { throw resultHodler.e; }
-            return resultHodler.result;
+            return AsyncToSyncWrapper.callAsyncAsSync(async() => await GetAsync(message));
         }
 
         public async Task<T> GetAndParseJsonAsync<T>(
@@ -114,35 +87,12 @@ namespace TradingAssistant
             return response;
         }
 
-        private async Task internalGetJsonAsyncForSyncWrapping<T>(
-            HttpRequestMessage message,
-            AsyncResultHodler<T> resultHodler,
-            JsonSerializerSettings jsonSettings=null,
-            ProcessHttpResponseDelegate? preParser = null)
-        {
-            try
-            {
-                resultHodler.result = await GetAndParseJsonAsync<T>(message, jsonSettings, preParser);
-            }
-            catch (Exception ex)
-            {
-                resultHodler.e = ex;
-            }
-            finally
-            {
-                resultHodler.completion_event.Set();
-            }
-        }
-
         public T GetAndParseJsonSync<T>(HttpRequestMessage message, 
                                          JsonSerializerSettings? jsonSettings = null, 
                                          ProcessHttpResponseDelegate? preParser = null)
         {
-            AsyncResultHodler<T> hodler = new();
-            Task.Run(async () => internalGetJsonAsyncForSyncWrapping<T>(message, hodler, jsonSettings, preParser));
-            hodler.completion_event.WaitOne();
-            if (hodler.e != null) { throw hodler.e; }
-            return hodler.result;
+            return AsyncToSyncWrapper.callAsyncAsSync(async () => await GetAndParseJsonAsync<T>(
+                message, jsonSettings, preParser));
         }
 
         public JsonSerializerSettings defaultSerializerSettings { get { return defaultserializerSettings_; } set { defaultserializerSettings_ = value; } }

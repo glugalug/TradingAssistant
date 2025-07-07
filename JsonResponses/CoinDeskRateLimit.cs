@@ -14,9 +14,9 @@
         }
         public class KeyUsageStats
         {
-            public RateLimitBreakdownCounts USED { get; set; }
-            public RateLimitBreakdownCounts MAX { get; set; }
-            public RateLimitBreakdownCounts REMAINING { get; set; }
+            public required RateLimitBreakdownCounts USED { get; set; }
+            public required RateLimitBreakdownCounts MAX { get; set; }
+            public required RateLimitBreakdownCounts REMAINING { get; set; }
         }
 
         public class RateLimitData
@@ -26,6 +26,6 @@
         }
         public RateLimitData? data { get; set; }
 
-        public CoinDeskErr Err {  get; set; }
+        public required CoinDeskErr Err {  get; set; }
     }
 }

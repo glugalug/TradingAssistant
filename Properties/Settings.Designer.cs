@@ -106,5 +106,29 @@ namespace TradingAssistant.Properties {
                 this["coinDeskApiKey"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("3")]
+        public int coinDeskMarketsAggregatedPerAsset {
+            get {
+                return ((int)(this["coinDeskMarketsAggregatedPerAsset"]));
+            }
+            set {
+                this["coinDeskMarketsAggregatedPerAsset"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool coinDeskAggregateAllMarkets {
+            get {
+                return ((bool)(this["coinDeskAggregateAllMarkets"]));
+            }
+            set {
+                this["coinDeskAggregateAllMarkets"] = value;
+            }
+        }
     }
 }

@@ -20,7 +20,7 @@ namespace TradingAssistant.JsonResponses
             public int ID { get; set; }
 
             [Display(Description = "Internal mapped symbol for a specific asset")]
-            public string SYMBOL { get; set; }
+            public required string SYMBOL { get; set; }
 
             [Display(Description = "The uri path that this asset will be found on / url-slug")]
             public string? URI { get; set; }
@@ -704,11 +704,11 @@ namespace TradingAssistant.JsonResponses
                 public int PAGE_SIZE { get; set; }
                 public int TOTAL_ASSETS { get; set; }
             }
-            public Stats STATS { get; set; }
+            public required Stats STATS { get; set; }
 
-            public Item[] LIST { get; set; }
+            public required Item[] LIST { get; set; }
         }
         public TData? Data { get; set; }
-        public CoinDeskErr Err { get; set; }
+        public required CoinDeskErr Err { get; set; }
     }
 }

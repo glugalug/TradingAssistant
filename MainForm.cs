@@ -14,6 +14,8 @@ namespace TradingAssistant
             InitializeComponent();
             initSettingsInputs();
             startTickerListRefresher();
+            marketOrdering_ = MarketOrdering.loadFromDefaultPathIfExists();
+            refreshMarketList();
         }
 
         private void startTickerListRefresher()
@@ -198,6 +200,7 @@ namespace TradingAssistant
         bool settingInputsInited_ = false;
         private CoinMetadataRefresher polygonTickerListRefresher_;
         private CoinDeskTopListRefresher coinDeskTopListRefresher_;
+        private MarketOrdering marketOrdering_;
 
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
@@ -286,17 +289,87 @@ namespace TradingAssistant
 
         private void coinDeskMarketsListBox_DragOver(object sender, DragEventArgs e)
         {
-            e.Effect = DragDropEffects.Move;
+            //e.Effect = DragDropEffects.Move;
+            //marketOrdering_.CopyOrderingFromCollection(coinDeskMarketsListBox.Items);
+            //coinDeskMarketsListBox.Invalidate();
         }
 
         private void coinDeskMarketsListBox_DragDrop(object sender, DragEventArgs e)
         {
-            Point point = coinDeskMarketsListBox.PointToClient(new Point(e.X, e.Y));
-            int index = this.coinDeskMarketsListBox.IndexFromPoint(point);
-            if (index < 0) index = this.coinDeskMarketsListBox.Items.Count - 1;
-            object data = e.Data.GetData(typeof(string));
-            this.coinDeskMarketsListBox.Items.Remove(data);
-            this.coinDeskMarketsListBox.Items.Insert(index, data);
+            //Point point = coinDeskMarketsListBox.PointToClient(new Point(e.X, e.Y));
+            //int index = this.coinDeskMarketsListBox.IndexFromPoint(point);
+            //if (index < 0) index = this.coinDeskMarketsListBox.Items.Count - 1;
+            //object data = e.Data.GetData(typeof(MarketOrderingItem));
+            //this.coinDeskMarketsListBox.Items.Remove(data);
+            //this.coinDeskMarketsListBox.Items.Insert(index, data);
+            //marketOrdering_.CopyOrderingFromCollection(coinDeskMarketsListBox.Items);
+            //coinDeskMarketsListBox.Invalidate();
+        }
+
+        private void refreshMarketListButton_Click(object sender, EventArgs e)
+        {
+            refreshMarketList();
+        }
+
+        private void refreshMarketList()
+        {
+            HashSet<string> markets = AsyncToSyncWrapper.callAsyncAsSync<HashSet<string>>(
+                async () => await CoinDeskApi.getActiveMarkets());
+            marketOrdering_.processUpdatedMarketList(markets);
+            coinDeskMarketsListBox.Items.Clear();
+            coinDeskMarketsListBox.Items.AddRange(marketOrdering_.ToArray());
+            marketOrdering_.saveToDefaultPath();
+        }
+
+        private void coinDeskMarketsListBox_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            if (e.Index < 0) return;
+            MarketOrderingItem item = coinDeskMarketsListBox.Items[e.Index] as MarketOrderingItem;
+            if (!item.enabled)
+            {
+                e.Graphics.DrawString(
+                    item.name, new Font(e.Font, e.Font.Style | FontStyle.Strikeout),
+                    Brushes.Black, e.Bounds);
+            }
+        }
+
+        private void enableMarketsButton_Click(object sender, EventArgs e)
+        {
+            foreach (var obj in coinDeskMarketsListBox.SelectedItems)
+            {
+                var item = obj as MarketOrderingItem;
+                item.enabled = true;
+            }
+            marketOrdering_.saveToDefaultPath();
+            coinDeskMarketsListBox.Invalidate();
+        }
+
+        private void disableSelectedMarketsButton_Click(object sender, EventArgs e)
+        {
+            foreach (var obj in coinDeskMarketsListBox.SelectedItems)
+            {
+                var item = obj as MarketOrderingItem;
+                item.enabled = false;
+            }
+            marketOrdering_.saveToDefaultPath();
+            coinDeskMarketsListBox.Invalidate();
+        }
+
+        private void coinDeskMarketsListBox_MouseDown(object sender, MouseEventArgs e)
+        {
+            //if (e.Button == MouseButtons.Left)
+            //{
+            //    // Start the drag operation
+            //    int index = coinDeskMarketsListBox.IndexFromPoint(e.Location);
+            //    if (index != -1)
+            //    {
+            //        coinDeskMarketsListBox.SelectedIndex = index;
+            //        // Initiate the drag operation
+            //        DoDragDrop(coinDeskMarketsListBox.SelectedItems, DragDropEffects.Move);
+            //    }
+            //}
+            //marketOrdering_.CopyOrderingFromCollection(coinDeskMarketsListBox.Items);
+            //marketOrdering_.saveToDefaultPath();
         }
     }
 }

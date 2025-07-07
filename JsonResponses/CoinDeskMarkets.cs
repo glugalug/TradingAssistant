@@ -11,12 +11,12 @@ namespace TradingAssistant.JsonResponses
         // Only bare minimal fields being used are are included here.  More can be added as needed.
         public class MarketData
         {
-            public string EXCHANGE_STATUS { get; set; }
-            public string EXCHANGE_INTERNAL_NAME { get; set; }
+            public required string EXCHANGE_STATUS { get; set; }
+            public required string EXCHANGE_INTERNAL_NAME { get; set; }
         }
 
-        public Dictionary<string, MarketData> Data { get; set; }
-        public CoinDeskErr Err { get; set; }
+        public required Dictionary<string, MarketData> Data { get; set; }
+        public required CoinDeskErr Err { get; set; }
     }
 }
 
